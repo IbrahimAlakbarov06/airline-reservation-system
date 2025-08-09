@@ -24,10 +24,29 @@ public class JwtService {
         return claims.getSubject();
     }
 
+    public String extractRole(String token) {
+        Claims claims = extractAllClaims(token);
+        return claims.get("role", String.class);
+    }
+
+    public String extractEmail(String token) {
+        Claims claims = extractAllClaims(token);
+        return claims.get("email", String.class);
+    }
+
     public boolean isTokenValid(String token) {
         try {
             Claims claims = extractAllClaims(token);
             return !isTokenExpired(claims);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public boolean isAdminToken(String token) {
+        try {
+            String role = extractRole(token);
+            return "ADMIN".equals(role);
         } catch (Exception e) {
             return false;
         }

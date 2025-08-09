@@ -13,7 +13,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 @Component
-public class AuthFilter implements GatewayFilter {
+public class AdminAuthFilter implements GatewayFilter {
 
     @Autowired
     private JwtService jwtService;
@@ -48,12 +48,16 @@ public class AuthFilter implements GatewayFilter {
             return onError(exchange, "Invalid token", HttpStatus.UNAUTHORIZED);
         }
 
-        String userId = jwtService.extractUserId(token);
         String role = jwtService.extractRole(token);
+        if (!"ADMIN".equals(role)) {
+            return onError(exchange, "Admin access required", HttpStatus.FORBIDDEN);
+        }
+
+        String userId = jwtService.extractUserId(token);
 
         ServerHttpRequest serverHttpRequest = exchange.getRequest().mutate()
                 .header("X-User-Id", userId)
-                .header("X-User-Role", role != null ? role : "USER")
+                .header("X-User-Role", role)
                 .build();
 
         return chain.filter(exchange.mutate().request(serverHttpRequest).build());
