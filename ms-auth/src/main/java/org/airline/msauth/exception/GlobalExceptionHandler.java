@@ -14,7 +14,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleUserNotFoundException(UserNotFoundException exception) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorResponse.builder()
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ErrorResponse.builder()
                 .error("NOT_FOUND")
                 .message(exception.getMessage())
                 .uuid(UUID.randomUUID())
@@ -22,6 +22,25 @@ public class GlobalExceptionHandler {
                 .build());
     }
 
+    @ExceptionHandler(AuthException.class)
+    public ResponseEntity<ErrorResponse> handleAuthException(AuthException exception) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorResponse.builder()
+                .error("BAD_REQUEST")
+                .message(exception.getMessage())
+                .uuid(UUID.randomUUID())
+                .timestamp(LocalDateTime.now())
+                .build());
+    }
+
+    @ExceptionHandler(UserAlreadyExistException.class)
+    public ResponseEntity<ErrorResponse> handleUserAlreadyExistException(UserAlreadyExistException exception) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorResponse.builder()
+                .error("BAD_REQUEST")
+                .message(exception.getMessage())
+                .uuid(UUID.randomUUID())
+                .timestamp(LocalDateTime.now())
+                .build());
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException() {

@@ -11,12 +11,17 @@ import org.airline.msauth.model.dto.request.ChangePasswordRequest;
 import org.airline.msauth.model.dto.request.LoginRequest;
 import org.airline.msauth.model.dto.request.RegisterRequest;
 import org.airline.msauth.model.dto.response.AuthResponse;
+import org.airline.msauth.model.dto.response.UserResponse;
+import org.airline.msauth.model.event.UserLoginEvent;
+import org.airline.msauth.model.event.UserLogoutEvent;
+import org.airline.msauth.model.event.UserRegisteredEvent;
 import org.airline.msauth.util.JwtService;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -28,7 +33,7 @@ public class AuthService {
     private final UserMapper userMapper;
     private final JwtService jwtService;
     private final RedisTemplate<String, Object> redisTemplate;
-    private final RabbitTemplate rabbitTemplate;
+    private final EventPublisher eventPublisher;
 
     private static final String BLACKLIST_PREFIX = "blacklist:token:";
     private static final String LOGIN_ATTEMPTS_PREFIX = "login_attempts:";
@@ -43,11 +48,21 @@ public class AuthService {
         User user = userMapper.toEntity(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        userRepository.save(user);
+        User savedUser =userRepository.save(user);
 
         String token = jwtService.generateToken(user);
 
-        return userMapper.toAuthResponse(user, token);
+        UserRegisteredEvent event = new UserRegisteredEvent(
+                savedUser.getId(),
+                savedUser.getEmail(),
+                savedUser.getFirstName(),
+                savedUser.getLastName(),
+                savedUser.getPhone(),
+                savedUser.getCreatedAt()
+        );
+        eventPublisher.publishUserRegistered(event);
+
+        return userMapper.toAuthResponse(savedUser, token);
     }
 
     public AuthResponse login(LoginRequest request) {
@@ -65,6 +80,13 @@ public class AuthService {
         clearLoginAttempts(email);
         String token = jwtService.generateToken(user);
 
+        UserLoginEvent event = new UserLoginEvent(
+                user.getId(),
+                user.getEmail(),
+                LocalDateTime.now()
+        );
+        eventPublisher.publishUserLogin(event);
+
         return userMapper.toAuthResponse(user, token);
     }
 
@@ -75,11 +97,15 @@ public class AuthService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found with id " + userId));
 
-
-
+        UserLogoutEvent event = new UserLogoutEvent(
+                user.getId(),
+                user.getEmail(),
+                LocalDateTime.now()
+        );
+        eventPublisher.publishUserLogout(event);
     }
 
-    public void changePassword(ChangePasswordRequest request, Long userId) {
+    public void     changePassword(ChangePasswordRequest request, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User with id " + userId + " not found"));
 
@@ -89,6 +115,17 @@ public class AuthService {
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
+    }
+
+    public AuthResponse validate(String token) {
+        if (!jwtService.isTokenValid(token)) {
+            throw new AuthException("Invalid token");
+        }
+
+        String userId = jwtService.extractUserId(token);
+        User user = userRepository.findById(Long.parseLong(userId))
+                .orElseThrow(() -> new UserNotFoundException("User not found with id " + userId));
+        return userMapper.toAuthResponse(user, token);
     }
 
     private void checkLoginAttempts(String email) {
