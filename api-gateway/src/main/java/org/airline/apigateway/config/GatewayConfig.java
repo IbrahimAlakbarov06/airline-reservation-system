@@ -23,8 +23,18 @@ public class GatewayConfig {
     @Bean
     public RouteLocator routes(RouteLocatorBuilder builder) {
         return builder.routes()
-                .route("auth-service", r -> r
-                        .path("/api/auth/**")
+                .route("auth-service-public", r -> r
+                        .path("/api/auth/register", "/api/auth/login")
+                        .uri("lb://ms-auth"))
+
+                .route("auth-service-protected", r -> r
+                        .path("/api/auth/logout", "/api/auth/change-password", "/api/auth/validate")
+                        .filters(f -> f.filter(authFilter))
+                        .uri("lb://ms-auth"))
+
+                .route("auth-service-admin", r -> r
+                        .path("/api/auth/admin/**")
+                        .filters(f -> f.filter(adminAuthFilter))
                         .uri("lb://ms-auth"))
 
                 .route("user-service", r -> r
