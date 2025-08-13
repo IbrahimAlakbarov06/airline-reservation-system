@@ -31,22 +31,20 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<String> logout(@RequestHeader("Authorization") String authHeader,
-                                         @RequestHeader("X-User-Id") Long userId) {
-        String token = authHeader.substring(7);
-        authService.logout(token, userId);
+    public ResponseEntity<String> logout(@RequestHeader("Authorization") String authHeader) {
+        authService.logoutWithToken(authHeader);
         return ResponseEntity.ok("Logout successful");
     }
 
     @PostMapping("/change-password")
     public ResponseEntity<String> changePassword(@Valid @RequestBody ChangePasswordRequest request,
-                                                 @RequestHeader("X-User-Id") Long userId) {
-        authService.changePassword(request, userId);
+                                                 @RequestHeader("Authorization") String authHeader) {
+        authService.changePasswordWithToken(request, authHeader);
         return ResponseEntity.ok("Password changed successfully");
     }
 
     @GetMapping("/validate")
-    public ResponseEntity<AuthResponse> validateToken(String token) {
+    public ResponseEntity<AuthResponse> validateToken(@RequestParam String token) {
         AuthResponse response = authService.validate(token);
         return ResponseEntity.ok(response);
     }

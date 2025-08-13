@@ -11,12 +11,10 @@ import org.airline.msauth.model.dto.request.ChangePasswordRequest;
 import org.airline.msauth.model.dto.request.LoginRequest;
 import org.airline.msauth.model.dto.request.RegisterRequest;
 import org.airline.msauth.model.dto.response.AuthResponse;
-import org.airline.msauth.model.dto.response.UserResponse;
 import org.airline.msauth.model.event.UserLoginEvent;
 import org.airline.msauth.model.event.UserLogoutEvent;
 import org.airline.msauth.model.event.UserRegisteredEvent;
 import org.airline.msauth.util.JwtService;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -90,6 +88,18 @@ public class AuthService {
         return userMapper.toAuthResponse(user, token);
     }
 
+    public void logoutWithToken(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new AuthException("Invalid authorization header");
+        }
+
+        String token = authHeader.substring(7);
+        String userIdStr = jwtService.extractUserId(token);
+        Long userId = Long.parseLong(userIdStr);
+
+        logout(token, userId);
+    }
+
     public void logout(String token, Long userId) {
         String blacklistPrefix = BLACKLIST_PREFIX + token;
         redisTemplate.opsForValue().set(blacklistPrefix, "blacklisted", 24, TimeUnit.MINUTES);
@@ -105,7 +115,19 @@ public class AuthService {
         eventPublisher.publishUserLogout(event);
     }
 
-    public void     changePassword(ChangePasswordRequest request, Long userId) {
+    public void changePasswordWithToken(ChangePasswordRequest request, String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new AuthException("Invalid authorization header");
+        }
+
+        String token = authHeader.substring(7);
+        String userIdStr = jwtService.extractUserId(token);
+        Long userId = Long.parseLong(userIdStr);
+
+        changePassword(request, userId);
+    }
+
+    public void changePassword(ChangePasswordRequest request, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User with id " + userId + " not found"));
 
