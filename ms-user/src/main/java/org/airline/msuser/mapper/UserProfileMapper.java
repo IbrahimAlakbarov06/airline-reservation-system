@@ -110,12 +110,10 @@ public class UserProfileMapper {
             return;
         }
 
-        // Required fields
         profile.setDateOfBirth(request.getDateOfBirth());
         profile.setPassportNumber(request.getPassportNumber());
         profile.setNationality(request.getNationality());
 
-        // Optional fields
         if (request.getIdentityNumber() != null) {
             profile.setIdentityNumber(request.getIdentityNumber());
         }
