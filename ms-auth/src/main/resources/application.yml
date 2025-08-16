@@ -5,14 +5,12 @@ spring:
   application:
     name: ms-auth
 
-  # Database Configuration
   datasource:
     url: jdbc:postgresql://localhost:5432/airline_auth_db
     username: postgres
     password: 123
     driver-class-name: org.postgresql.Driver
 
-  # JPA Configuration
   jpa:
     hibernate:
       ddl-auto: update
@@ -22,7 +20,6 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
 
-  # Redis Configuration
   data:
     redis:
       host: localhost
@@ -34,7 +31,6 @@ spring:
           max-idle: 8
           min-idle: 0
 
-  # RabbitMQ Configuration
   rabbitmq:
     host: localhost
     port: 5672
@@ -42,12 +38,10 @@ spring:
     password: guest
     virtual-host: /
 
-# JWT Configuration
 jwt:
   secret: n7Gq2HkFi4D1pRcNz6MZtYsKb+uN83LhT9VqXjReJ1c=
-  expiration: 86400000 # 24 hours
+  expiration: 86400000
 
-# Eureka Client Configuration
 eureka:
   client:
     service-url:
@@ -58,7 +52,6 @@ eureka:
       management:
         context-path: /actuator
 
-# Logging
 logging:
   level:
     org.airline.msauth: DEBUG
