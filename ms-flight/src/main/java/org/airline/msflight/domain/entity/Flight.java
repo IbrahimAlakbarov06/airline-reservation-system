@@ -30,11 +30,11 @@ public class Flight {
     private Aircraft aircraft;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "airport_id", nullable = false)
+    @JoinColumn(name = "origin_airport_id", nullable = false)
     private Airport originAirport;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "airport_id", nullable = false)
+    @JoinColumn(name = "destination_airport_id", nullable = false)
     private Airport destinationAirport;
 
     @Column(name = "departure_time", nullable = false)
@@ -86,13 +86,33 @@ public class Flight {
         updatedAt = LocalDateTime.now();
 
         if (aircraft != null) {
-
+            if (availableEconomySeats == null) {
+                availableEconomySeats = aircraft.getEconomySeats();
+            }
+            if (availableBusinessSeats == null) {
+                availableBusinessSeats = aircraft.getBusinessSeats();
+            }
+            if (availableFirstClassSeats == null) {
+                availableFirstClassSeats = aircraft.getFirstClassSeats();
+            }
         }
     }
 
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 
+    public Integer getTotalAvailableSeats() {
+        return availableEconomySeats + availableBusinessSeats + availableFirstClassSeats;
+    }
 
-
-
-
+    public boolean hasAvailableSeats(String flightClass, Integer requestedSeats) {
+        return switch (flightClass.toUpperCase()) {
+            case "ECONOMY" -> availableEconomySeats >= requestedSeats;
+            case "BUSINESS" -> availableBusinessSeats >= requestedSeats;
+            case "FIRST_CLASS" -> availableFirstClassSeats >= requestedSeats;
+            default -> false;
+        };
+    }
 }
