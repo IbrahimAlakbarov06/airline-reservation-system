@@ -18,21 +18,20 @@ public interface FlightRepository extends JpaRepository<Flight, Long> {
     List<Flight> findByStatus(FlightStatus status);
 
     @Query("select f from Flight f where f.originAirport.id = :originAirportId and f.destinationAirport.id = :destinationAirportId order by f.departureTime asc")
-    List<Flight> findByRoute(@Param("originId") Long originId, @Param("destinationId") Long destinationId);
+    List<Flight> findByRoute(@Param("originAirportId") Long originId, @Param("destinationAirportId") Long destinationId);
 
     @Query("select f from Flight f " +
             "join f.originAirport oa " +
             "join f.destinationAirport da " +
             "where upper(oa.city) = upper(:originCity) " +
             "and upper(da.city) = upper(:destinationCity) " +
-            "and f.departureTime between :startTime and :endTime" +
+            "and f.departureTime between :startTime and :endTime " +
             "and f.status = :status order by f.departureTime asc")
     List<Flight> searchFlights(@Param("originCity") String originCity,
                                @Param("destinationCity") String destinationCity,
                                @Param("startTime") LocalDateTime startTime,
                                @Param("endTime") LocalDateTime endTime,
                                @Param("status") FlightStatus status);
-
 
     @Query("select f from Flight f where f.departureTime between :startDate and :endDate")
     List<Flight> findByDepartureDateRange(@Param("startDate") LocalDateTime startDate,
@@ -41,7 +40,7 @@ public interface FlightRepository extends JpaRepository<Flight, Long> {
     @Query("select da.city, count(f) as flightcount from Flight f join f.destinationAirport da where f.status = 'SCHEDULED' group by da.city order by flightcount desc")
     List<String> findPopularDestinations();
 
-    @Query("select f from Flight f where date(f.departureTime) = current_date order by f.departureTime asc")
+    @Query("select f from Flight f where cast(f.departureTime as date) = current_date order by f.departureTime asc")
     List<Flight> findTodaysFlights();
 
     @Query("select f from Flight f where f.status in ('SCHEDULED', 'BOARDING') and f.departureTime > :now order by f.departureTime asc")

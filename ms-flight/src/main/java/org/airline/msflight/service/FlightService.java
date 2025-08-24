@@ -78,9 +78,9 @@ public class FlightService {
     }
 
     @Transactional(readOnly = true)
-    public FlightResponse getByFlightNumber(String fligthNumber) {
-        Flight flight = flightRepository.findByFlightNumber(fligthNumber)
-                .orElseThrow(() -> new FlightNotFoundException("Flight not found with flight number: " + fligthNumber));
+    public FlightResponse getByFlightNumber(String flightNumber) {
+        Flight flight = flightRepository.findByFlightNumber(flightNumber)
+                .orElseThrow(() -> new FlightNotFoundException("Flight not found with flight number: " + flightNumber));
 
         return flightMapper.toResponse(flight);
     }
