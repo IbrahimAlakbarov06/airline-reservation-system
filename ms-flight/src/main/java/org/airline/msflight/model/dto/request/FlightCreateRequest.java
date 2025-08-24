@@ -39,15 +39,6 @@ public class FlightCreateRequest {
     @Positive(message = "Base price must be positive")
     private BigDecimal basePrice;
 
-    @Positive(message = "Economy price must be positive")
-    private BigDecimal economyPrice;
-
-    @Positive(message = "Business price must be positive")
-    private BigDecimal businessPrice;
-
-    @Positive(message = "First class price must be positive")
-    private BigDecimal firstClassPrice;
-
     private String gateNumber;
     private String terminal;
 }

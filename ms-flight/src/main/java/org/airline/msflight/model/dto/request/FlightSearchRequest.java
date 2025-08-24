@@ -8,6 +8,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.airline.msflight.model.enums.City;
+import org.airline.msflight.model.enums.FlightClass;
 
 import java.time.LocalDate;
 
@@ -18,10 +20,10 @@ import java.time.LocalDate;
 public class FlightSearchRequest {
 
     @NotBlank(message = "Origin city is required")
-    private String originCity;
+    private City originCity;
 
     @NotBlank(message = "Destination city is required")
-    private String destinationCity;
+    private City destinationCity;
 
     @NotNull(message = "Departure date is required")
     @Future(message = "Departure date must be in future")
@@ -30,7 +32,7 @@ public class FlightSearchRequest {
     @Positive(message = "Passenger count must be positive")
     private Integer passengerCount = 1;
 
-    private String flightClass = "ECONOMY";
+    private FlightClass flightClass = FlightClass.ECONOMY;
 
     private LocalDate returnDate;
 }

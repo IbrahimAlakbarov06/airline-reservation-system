@@ -18,9 +18,6 @@ public class FlightUpdateRequest {
     private LocalDateTime arrivalTime;
     private FlightStatus status;
     private BigDecimal basePrice;
-    private BigDecimal economyPrice;
-    private BigDecimal businessPrice;
-    private BigDecimal firstClassPrice;
     private String gateNumber;
     private String terminal;
 }
