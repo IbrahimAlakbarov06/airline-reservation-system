@@ -47,8 +47,14 @@ public class GatewayConfig {
                         .filters(f -> f.filter(adminAuthFilter))
                         .uri("lb://ms-user"))
 
-                .route("flight-service", r -> r
-                        .path("/api/flights/**")
+                .route("flight-admin-service", r -> r
+                        .path("/api/admin/flights/**", "/api/admin/aircrafts/**", "/api/admin/airports/**")
+                        .and().not(p -> p.path("/api/admin/flights/internal/**"))
+                        .filters(f -> f.filter(adminAuthFilter))
+                        .uri("lb://ms-flight"))
+
+                .route("flight-internal-service", r -> r
+                        .path("/api/flights/internal/**")
                         .uri("lb://ms-flight"))
 
                 .route("search-service", r -> r
