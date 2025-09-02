@@ -19,10 +19,10 @@ import java.time.LocalDate;
 @Builder
 public class FlightSearchRequest {
 
-    @NotBlank(message = "Origin city is required")
+    @NotNull(message = "Origin city is required")
     private City originCity;
 
-    @NotBlank(message = "Destination city is required")
+    @NotNull(message = "Destination city is required")
     private City destinationCity;
 
     @NotNull(message = "Departure date is required")
