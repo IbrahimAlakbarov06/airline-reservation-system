@@ -16,27 +16,27 @@ public class RabbitConfig {
     }
 
     @Bean
-    public Queue seatReservedQueue() {
-        return QueueBuilder.durable("seat.reserved.queue").build();
+    public Queue bookingCreatedQueue() {
+        return QueueBuilder.durable("booking.created.queue").build();
     }
 
     @Bean
-    public Binding seatReservedBinding() {
+    public Binding bookingCreatedBinding() {
         return BindingBuilder
-                .bind(seatReservedQueue())
+                .bind(bookingCreatedQueue())
                 .to(bookingExchange())
                 .with("booking.created");
     }
 
     @Bean
-    public Queue seatReleasedQueue() {
-        return QueueBuilder.durable("seat.released.queue").build();
+    public Queue bookingCancelledQueue() {
+        return QueueBuilder.durable("booking.cancelled.queue").build();
     }
 
     @Bean
-    public Binding seatReleasedBinding() {
+    public Binding bookingCancelledBinding() {
         return BindingBuilder
-                .bind(seatReleasedQueue())
+                .bind(bookingCancelledQueue())
                 .to(bookingExchange())
                 .with("booking.cancelled");
     }

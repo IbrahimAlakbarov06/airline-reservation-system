@@ -15,21 +15,21 @@ public class BookingEventListener {
 
     private final OccupancyTrackingService occupancyTrackingService;
 
-    @RabbitListener(queues = "seat.reserve.queue")
-    public void handleReserveSeat(BookingCreatedEvent event) {
+    @RabbitListener(queues = "booking.created.queue")
+    public void handleBookingCreated(BookingCreatedEvent event) {
         try {
             occupancyTrackingService.updateOccupancy(event.getFlightId(), event.getTotalPassengers(), true);
         } catch (Exception e) {
-            log.error("Error processing seat reserved event for flight: {}", event.getFlightId(), e);
+            log.error("Error processing booking created event for flight: {}", event.getFlightId(), e);
         }
     }
 
-    @RabbitListener(queues = "seat.reserve.queue")
-    public void handleReleaseSeat(BookingCanceledEvent event) {
+    @RabbitListener(queues = "booking.cancelled.queue")
+    public void handleBookingCancelled(BookingCanceledEvent event) {
         try {
             occupancyTrackingService.updateOccupancy(event.getFlightId(), event.getTotalPassengers(), false);
         } catch (Exception e) {
-            log.error("Error processing seat release event for flight: {}", event.getFlightId(), e);
+            log.error("Error processing booking cancelled event for flight: {}", event.getFlightId(), e);
         }
     }
 }
