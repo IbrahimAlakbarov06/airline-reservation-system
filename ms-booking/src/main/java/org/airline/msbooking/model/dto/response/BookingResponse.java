@@ -24,17 +24,21 @@ public class BookingResponse {
     private String flightClass;
     private BookingStatus status;
     private Integer totalPassengers;
+
     private BigDecimal totalPrice;
     private BigDecimal basePrice;
-    private String passengerEmail;
-    private String passengerPhone;
+    private BigDecimal discountAmount;
+    private String currency;
+
     private String contactName;
+    private String contactPhone;
     private String specialRequests;
-    private LocalDateTime expiresAt;
+
     private LocalDateTime confirmedAt;
     private LocalDateTime cancelledAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
     private List<PassengerDetailResponse> passengerDetails;
     private FlightInfoResponse flightInfo;
 }

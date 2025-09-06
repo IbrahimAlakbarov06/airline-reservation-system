@@ -24,6 +24,8 @@ public class PassengerDetailRequest {
     @NotBlank(message = "Date of birth is required")
     private LocalDate dateOfBirth;
 
+    private String nationality;
+
     @Pattern(regexp = "^[A-Z0-9]{6,12}$", message = "Invalid passport number format")
     private String passportNumber;
 

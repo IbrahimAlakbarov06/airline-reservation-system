@@ -24,7 +24,11 @@ public class PassengerDetailResponse {
     private String nationality;
     private String gender;
     private String ageCategory;
+
     private BigDecimal passengerPrice;
+    private BigDecimal discountApplied;
+    private String currency;
+
     private String seatNumber;
     private String mealPreference;
     private String specialAssistance;
