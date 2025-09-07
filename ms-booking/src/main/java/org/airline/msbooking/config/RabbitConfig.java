@@ -1,5 +1,6 @@
 package org.airline.msbooking.config;
 
+import org.hibernate.annotations.Bag;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -53,6 +54,19 @@ public class RabbitConfig {
                 .bind(bookingCanceledQueue())
                 .to(bookingExchange())
                 .with("booking.canceled");
+    }
+
+    @Bean
+    public Queue bookingCompletedQueue() {
+        return QueueBuilder.durable("booking.completed.queue").build();
+    }
+
+    @Bean
+    public Binding bookingCompletedBinding() {
+        return BindingBuilder
+                .bind(bookingCompletedQueue())
+                .to(bookingExchange())
+                .with("booking.completed");
     }
 
     @Bean

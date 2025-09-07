@@ -16,7 +16,4 @@ public interface PassengerRepository extends JpaRepository<Passenger, Long> {
 
     @Query("SELECT p FROM Passenger p WHERE p.userProfileId = :userProfileId")
     List<Passenger> findByUserProfileId(@Param("userProfileId") Long userProfileId);
-
-    @Query("SELECT p FROM Passenger p WHERE p.booking.id = :bookingId AND p.isMainPassenger = true")
-    Passenger findMainPassengerByBookingId(@Param("bookingId") Long bookingId);
 }
