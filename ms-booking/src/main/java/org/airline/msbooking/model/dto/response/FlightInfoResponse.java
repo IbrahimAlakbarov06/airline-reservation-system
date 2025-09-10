@@ -23,4 +23,6 @@ public class FlightInfoResponse {
     private LocalDateTime arrivalTime;
     private String aircraftType;
     private String status;
+    private String gateNumber;
+    private String terminal;
 }

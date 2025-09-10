@@ -1,0 +1,52 @@
+server:
+  port: 8087
+
+spring:
+  application:
+    name: ms-booking
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/airline_booking_db
+    username: postgres
+    password: 123
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+feign:
+  hystrix:
+    enabled: false
+  client:
+    config:
+      default:
+        loggerLevel: FULL
+
+ribbon:
+  ConnectTimeout: 10000
+  ReadTimeout: 10000
+
+logging:
+  level:
+    org.airline.msbooking: DEBUG
+    org.springframework.web: DEBUG

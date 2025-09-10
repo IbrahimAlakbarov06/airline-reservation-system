@@ -8,13 +8,13 @@ import org.airline.msbooking.client.UserClient;
 import org.airline.msbooking.domain.entity.Booking;
 import org.airline.msbooking.domain.entity.Passenger;
 import org.airline.msbooking.domain.repo.BookingRepository;
-import org.airline.msbooking.domain.repo.PassengerRepository;
 import org.airline.msbooking.exception.BookingNotFoundException;
 import org.airline.msbooking.exception.FlightNotAvailableException;
 import org.airline.msbooking.exception.InvalidBookingException;
 import org.airline.msbooking.mapper.BookingMapper;
 import org.airline.msbooking.mapper.PassengerMapper;
 import org.airline.msbooking.model.dto.request.BookingCreateRequest;
+import org.airline.msbooking.model.dto.request.PassengerDetailRequest;
 import org.airline.msbooking.model.dto.request.PricingRequest;
 import org.airline.msbooking.model.dto.response.*;
 import org.airline.msbooking.model.enums.BookingStatus;
@@ -23,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,7 +31,6 @@ import java.util.stream.Collectors;
 public class BookingService {
 
     private final BookingRepository bookingRepository;
-    private final PassengerRepository passengerRepository;
     private final BookingMapper bookingMapper;
     private final PassengerMapper passengerMapper;
     private final FlightClient flightClient;
@@ -44,48 +42,51 @@ public class BookingService {
         try {
             Long userId = Long.parseLong(userIdHeader);
 
-            FlightInfoResponse flightInfoResponse = flightClient.getFlightForBooking(request.getFlightId());
+            FlightInfoResponse flight = flightClient.getFlightForBooking(request.getFlightId());
+            UserProfileResponse user = userClient.getCurrentUserProfile(userIdHeader);
+
+            if (!user.getIsProfileComplete()) {
+                throw new InvalidBookingException("Please complete the profile first");
+            }
+
+            List<PassengerDetailRequest> allPassengers = bookingMapper.buildPassengerList(request, user);
+
             if (!flightClient.checkSeatAvailability(request.getFlightId(),
-                    request.getFlightClass(), request.getPassengers().size())) {
+                    request.getFlightClass(), allPassengers.size())) {
                 throw new FlightNotAvailableException("Insufficient seats available for flight " + request.getFlightId());
             }
 
-            UserProfileResponse user = userClient.getCurrentUserProfile(userIdHeader);
-            if (!user.getIsProfileComplete()) {
-                throw new InvalidBookingException("Please complete your profile before booking");
-            }
-
-            PricingRequest pricingRequest = bookingMapper.toPricingRequest(request, userId);
-            PricingResponse pricingResponse = pricingClient.calculatePrice(pricingRequest);
-
             if (!flightClient.reserveSeats(request.getFlightId(),
-                    request.getFlightClass(), request.getPassengers().size())) {
+                    request.getFlightClass(), allPassengers.size())) {
                 throw new FlightNotAvailableException("Failed to reserve seats for flight " + request.getFlightId());
             }
 
-            Booking booking = bookingMapper.toEntity(request, userId, pricingResponse, user);
+            BookingCreateRequest processedRequest = bookingMapper.buildProcessedRequest(request, user, allPassengers);
 
+            PricingRequest pricingRequest = bookingMapper.toPricingRequest(processedRequest, userId);
+            PricingResponse pricingResponse = pricingClient.calculatePrice(pricingRequest);
 
-            List<Passenger> passengers = passengerMapper.toEntities(request, booking, pricingResponse);
+            Booking booking = bookingMapper.toEntity(processedRequest, userId, pricingResponse, user);
+            List<Passenger> passengers = passengerMapper.toEntities(processedRequest, booking, pricingResponse);
             booking.setPassengers(passengers);
 
             Booking savedBooking = bookingRepository.save(booking);
 
             List<PassengerDetailResponse> passengerResponses = passengerMapper.toPassengerResponseList(passengers);
             BookingResponse response = bookingMapper.toResponseWithCurrency(
-                    savedBooking, flightInfoResponse, passengerResponses, pricingResponse.getCurrency());
+                    savedBooking, flight, passengerResponses, pricingResponse.getCurrency());
 
-            eventPublisher.publishBookingCreated(booking, user);
+            eventPublisher.publishBookingCreated(savedBooking, user);
 
             return response;
-        } catch (Exception e) {
 
+        } catch (Exception e) {
             try {
-                flightClient.releaseSeats(request.getFlightId(), request.getFlightClass(), request.getPassengers().size());
+                int totalPassengers = request.getPassengers().size() + (request.isUseMyProfile() ? 1 : 0);
+                flightClient.releaseSeats(request.getFlightId(), request.getFlightClass(), totalPassengers);
             } catch (Exception ex) {
                 log.error("Failed to release seats after booking error", ex);
             }
-
             throw e;
         }
     }
@@ -101,7 +102,7 @@ public class BookingService {
             throw new InvalidBookingException("You can only view your own bookings");
         }
 
-        return buildBookingResponse(booking);
+        return bookingMapper.buildBookingResponse(booking);
     }
 
     @Transactional(readOnly = true)
@@ -110,7 +111,7 @@ public class BookingService {
 
         List<Booking> bookings = bookingRepository.findByUserId(userId);
 
-        return buildListBookingResponse(bookings);
+        return bookingMapper.buildListBookingResponse(bookings);
     }
 
     @Transactional
@@ -171,26 +172,5 @@ public class BookingService {
             log.error("Error calculating price preview for flight: {}", request.getFlightId(), e);
             throw new RuntimeException("Price preview calculation failed: " + e.getMessage(), e);
         }
-    }
-
-
-    private BookingResponse buildBookingResponse(Booking booking) {
-        try {
-            FlightInfoResponse flight = flightClient.getFlightForBooking(booking.getFlightId());
-
-            List<PassengerDetailResponse> passangers = passengerMapper.toPassengerResponseList(booking.getPassengers());
-
-            return bookingMapper.toResponse(booking, flight, passangers);
-        } catch (Exception ex) {
-            List<PassengerDetailResponse> passengers = passengerMapper.toPassengerResponseList(booking.getPassengers());
-
-            return bookingMapper.toResponse(booking, null, passengers);
-        }
-    }
-
-    private List<BookingResponse> buildListBookingResponse(List<Booking> bookings) {
-        return bookings.stream()
-                .map(this::buildBookingResponse)
-                .collect(Collectors.toList());
     }
 }

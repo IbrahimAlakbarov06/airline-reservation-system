@@ -22,6 +22,7 @@ public class UserProfileResponse {
     private LocalDate dateOfBirth;
     private String passportNumber;
     private String nationality;
+    private String gender;
     private String ageCategory;
     private Boolean isProfileComplete;
 }

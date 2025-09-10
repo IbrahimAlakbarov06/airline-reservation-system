@@ -1,13 +1,13 @@
 package org.airline.msbooking.model.dto.request;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -25,9 +25,10 @@ public class BookingCreateRequest {
     @NotNull(message = "Currency is required")
     private String currency = "USD";
 
-    @NotEmpty(message = "At least one passenger is required")
+    private boolean useMyProfile = false;
+
     @Valid
-    private List<PassengerDetailRequest> passengers;
+    private List<PassengerDetailRequest> passengers = new ArrayList<>();
 
     @NotNull(message = "Contact name is required")
     private String contactName;
