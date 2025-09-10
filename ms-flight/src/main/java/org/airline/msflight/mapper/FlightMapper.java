@@ -9,6 +9,7 @@ import org.airline.msflight.model.dto.response.FlightResponse;
 import org.airline.msflight.model.dto.response.FlightBookingResponse;
 import org.airline.msflight.model.dto.response.FlightPricingResponse;
 import org.airline.msflight.model.dto.response.FlightSearchResponse;
+import org.airline.msflight.model.enums.City;
 import org.airline.msflight.model.enums.FlightClass;
 import org.airline.msflight.model.enums.FlightStatus;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,19 +109,14 @@ public class FlightMapper {
         return FlightBookingResponse.builder()
                 .id(flight.getId())
                 .flightNumber(flight.getFlightNumber())
-                .aircraft(aircraftMapper.toResponse(flight.getAircraft()))
-                .originAirport(airportMapper.toResponse(flight.getOriginAirport()))
-                .destinationAirport(airportMapper.toResponse(flight.getDestinationAirport()))
+                .originCode(flight.getOriginAirport().getAirportCode())
+                .originCity(City.fromCityName(flight.getOriginAirport().getCity()))
+                .destinationCode(flight.getDestinationAirport().getAirportCode())
+                .destinationCity(City.fromCityName(flight.getDestinationAirport().getCity()))
                 .departureTime(flight.getDepartureTime())
                 .arrivalTime(flight.getArrivalTime())
+                .aircraftType(flight.getAircraft().getModel())
                 .status(flight.getStatus())
-                .basePrice(flight.getBasePrice())
-                .economyPrice(flight.getEconomyPrice())
-                .businessPrice(flight.getBusinessPrice())
-                .firstClassPrice(flight.getFirstClassPrice())
-                .availableEconomySeats(flight.getAvailableEconomySeats())
-                .availableBusinessSeats(flight.getAvailableBusinessSeats())
-                .availableFirstClassSeats(flight.getAvailableFirstClassSeats())
                 .gateNumber(flight.getGateNumber())
                 .terminal(flight.getTerminal())
                 .build();
