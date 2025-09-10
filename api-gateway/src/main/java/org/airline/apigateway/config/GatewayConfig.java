@@ -66,6 +66,11 @@ public class GatewayConfig {
                         .filters(f -> f.filter(authFilter))
                         .uri("lb://ms-booking"))
 
+                .route("booking-admin-service", r -> r
+                        .path("/api/admin/bookings/**")
+                        .filters(f -> f.filter(adminAuthFilter))
+                        .uri("lb://ms-booking"))
+
                 .route("payment-service", r -> r
                         .path("/api/payments/**")
                         .filters(f -> f.filter(authFilter))
